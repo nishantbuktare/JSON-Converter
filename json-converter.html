@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            max-width: 100%; /* Ensure it doesn't overflow */
+            overflow: auto; /* Enable scrolling if content overflows */
+            margin-top: 10px;
+            word-wrap: break-word;
+            box-sizing: border-box;
+        }
+
+        #copyButton,
+        #downloadButton {
+            display: none;
+            margin-top: 10px;
+        }
+
+        #copyButton {
+            background-color: #28a745;
+        }
+
+        #copyButton:hover {
+            background-color: #218838;
+        }
+
+        #downloadButton {
+            background-color: #17a2b8;
+            margin-left: 10px;
+        }
+
+        #downloadButton:hover {
+            background-color: #138496;
+        }
+
+        #copyMessage {
+            display: none;
+            color: green;
+            margin-top: 10px;
+        }
+
+        #clearButton {
+            background-color: #dc3545;
+            /* margin-left: 10px; */
+        }
+
+        #clearButton:hover {
+            background-color: #c82333;
+        }
+        .author {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="author">Made by Nishant Buktare</div>
+    <h1>Convert JSON String</h1>
+
+    <form id="jsonForm">
+        <label for="jsonInput">JSON Input:</label><br>
+        <textarea id="jsonInput" rows="10" cols="50"></textarea><br><br>
+        <button type="submit">Convert To JSON</button>
+        <button type="button" id="clearButton">Clear</button>
+        <button type="button" id="reverseButton">Convert To Escaped</button>
+    </form>
+    <div>
+        <button id="copyButton">Copy to Clipboard</button>
+        <button id="downloadButton">Download JSON</button>
+    </div>
+    <span id="copyMessage">JSON copied to clipboard!</span>
+    <h2>Converted JSON:</h2>
+    <div id="result"></div>
+
+    <script>
+        function unescapeJsonString(jsonString) {
+            // Unescape the JSON string
+            return jsonString.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
+        }
+
+        function escapeJsonString(jsonObject) {
+            // Escape the JSON string
+            return JSON.stringify(jsonObject).replace(/\\/g, '\\\\').replace(/\"/g, '\\"').replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+        }
+
+        function convertToNormalJson(jsonString) {
+            try {
+                // Unescape the JSON string before parsing
+                let unescapedJsonString = unescapeJsonString(jsonString);
+
+                // Parse the JSON string into a JavaScript object
+                let jsonObject = JSON.parse(unescapedJsonString);
+
+                // Convert the JavaScript object back to a JSON string
+                let normalJsonString = JSON.stringify(jsonObject, null, 2);
+
+                return normalJsonString;
+            } catch (error) {
+                console.error("Invalid JSON string:", error);
+                return "Invalid JSON string";
+            }
+        }
+
+        function convertToEscapedJson(jsonString) {
+            try {
+                // Parse the JSON string into a JavaScript object
+                let jsonObject = JSON.parse(jsonString);
+
+                // Escape the JSON string
+                let escapedJsonString = escapeJsonString(jsonObject);
+
+                return escapedJsonString;
+            } catch (error) {
+                console.error("Invalid JSON string:", error);
+                return "Invalid JSON string";
+            }
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        function downloadJson(jsonString, filename) {
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('jsonForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const jsonString = document.getElementById('jsonInput').value;
+            const normalJson = convertToNormalJson(jsonString);
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = normalJson;
+            resultDiv.style.display = 'block';
+
+            if (normalJson !== "Invalid JSON string") {
+                document.getElementById('copyButton').style.display = 'inline-block';
+                document.getElementById('downloadButton').style.display = 'inline-block';
+                document.getElementById('copyButton').onclick = function() {
+                    copyToClipboard(normalJson);
+                    document.getElementById('copyMessage').style.display = 'inline';
+                    setTimeout(function() {
+                        document.getElementById('copyMessage').style.display = 'none';
+                    }, 2000);
+                };
+                document.getElementById('downloadButton').onclick = function() {
+                    downloadJson(normalJson, 'converted.json');
+                };
+            } else {
+                document.getElementById('copyButton').style.display = 'none';
+                document.getElementById('downloadButton').style.display = 'none';
+            }
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+            document.getElementById('jsonInput').value = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('copyButton').style.display = 'none';
+            document.getElementById('downloadButton').style.display = 'none';
+            document.getElementById('copyMessage').style.display = 'none';
+        });
+
+        document.getElementById('reverseButton').addEventListener('click', function() {
+            const jsonString = document.getElementById('jsonInput').value;
+            const escapedJson = convertToEscapedJson(jsonString);
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = escapedJson;
+            resultDiv.style.display = 'block';
+
+            if (escapedJson !== "Invalid JSON string") {
+                document.getElementById('copyButton').style.display = 'inline-block';
+                document.getElementById('downloadButton').style.display = 'inline-block';
+                document.getElementById('copyButton').onclick = function() {
+                    copyToClipboard(escapedJson);
+                    document.getElementById('copyMessage').style.display = 'inline';
+                    setTimeout(function() {
+                        document.getElementById('copyMessage').style.display = 'none';
+                    }, 2000);
+                };
+                document.getElementById('downloadButton').onclick = function() {
+                    downloadJson(escapedJson, 'converted.json');
+                };
+            } else {
+                document.getElementById('copyButton').style.display = 'none';
+                document.getElementById('downloadButton').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>
