@@ -70,9 +70,6 @@
             <label for="phone">Phone</label>
             <input type="text" id="phone" name="phone" required>
 
-            <label for="accessToken">Salesforce Bearer Token</label>
-            <input type="text" id="accessToken" name="accessToken" required>
-
             <button type="submit">Register</button>
         </form>
     </div>
@@ -85,35 +82,65 @@
             const lastName = document.getElementById("lastName").value;
             const email = document.getElementById("email").value;
             const phone = document.getElementById("phone").value;
-            const accessToken = document.getElementById("accessToken").value;
             
-            // Constructing the payload to send to Salesforce
-            const data = {
-                FirstName: firstName,
-                LastName: lastName,
-                Email: email,
-                Phone: phone
-            };
+            // OAuth credentials
+            const clientId = '3MVG9GBhY6wQjl2tJVsTZv6TZejlRnbyxwDqSMboMQUro0ZjTeKFKXkYhqkSQhkXWIjla.6OmpuHSg0Lmkydv';
+            const clientSecret = '0C402662FB96F0C497446D57ACF65615F1E83239F949CBEB2AED3D675621BF90';
+            const username = 'shubham.m-4lay@force.com';
+            const password = 'Selectiva1234';
+            const authUrl = 'https://login.salesforce.com/services/oauth2/token';
             
-            // Making the API call to Salesforce
-            fetch('https://selectivasystems.my.salesforce.com/services/data/v57.0/sobjects/Contact/', {
+            // Step 1: Obtain OAuth token
+            fetch(authUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + accessToken
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify(data)
+                body: new URLSearchParams({
+                    'grant_type': 'password',
+                    'client_id': clientId,
+                    'client_secret': clientSecret,
+                    'username': username,
+                    'password': password
+                })
             })
-            .then(response => {
-                if (response.ok) {
-                    alert('Volunteer registered successfully!');
+            .then(response => response.json())
+            .then(authData => {
+                if (authData.access_token) {
+                    // Step 2: Use the access token to make the API call to Salesforce
+                    const data = {
+                        FirstName: firstName,
+                        LastName: lastName,
+                        Email: email,
+                        Phone: phone
+                    };
+
+                    fetch('https://selectivasystems.my.salesforce.com/services/data/v57.0/sobjects/Contact/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + authData.access_token
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Volunteer registered successfully!');
+                        } else {
+                            alert('Failed to register. Please try again later.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('There was an error with your registration. Please try again.');
+                    });
                 } else {
-                    alert('Failed to register. Please try again later.');
+                    alert('Failed to authenticate. Please check your credentials.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('There was an error with your registration. Please try again.');
+                alert('There was an error with authentication. Please try again.');
             });
         });
     </script>
