@@ -83,31 +83,39 @@
             const email = document.getElementById("email").value;
             const phone = document.getElementById("phone").value;
             
-            // OAuth credentials
-            const clientId = 'YOUR_CONNECTED_APP_CLIENT_ID';
-            const clientSecret = 'YOUR_CONNECTED_APP_CLIENT_SECRET';
-            const username = 'YOUR_SALESFORCE_USERNAME';
-            const password = 'YOUR_SALESFORCE_PASSWORD' + 'YOUR_SECURITY_TOKEN';
-            const authUrl = 'https://login.salesforce.com/services/oauth2/token';
+            // Salesforce SOAP API login credentials
+            const username = 'shubham.m-4lay@force.com';
+            const password = 'Selectiva1234';
+            const loginUrl = 'https://login.salesforce.com/services/Soap/u/57.0';
             
-            // Step 1: Obtain OAuth token
-            fetch(authUrl, {
+            // Step 1: Obtain session ID via SOAP login
+            const soapBody = `<?xml version="1.0" encoding="utf-8" ?>
+                <env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+                    <env:Body>
+                        <n1:login xmlns:n1="urn:partner.soap.sforce.com">
+                            <n1:username>${username}</n1:username>
+                            <n1:password>${password}</n1:password>
+                        </n1:login>
+                    </env:Body>
+                </env:Envelope>`;
+
+            fetch(loginUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'text/xml',
+                    'SOAPAction': 'login'
                 },
-                body: new URLSearchParams({
-                    'grant_type': 'password',
-                    'client_id': clientId,
-                    'client_secret': clientSecret,
-                    'username': username,
-                    'password': password
-                })
+                body: soapBody
             })
-            .then(response => response.json())
-            .then(authData => {
-                if (authData.access_token) {
-                    // Step 2: Use the access token to make the API call to Salesforce
+            .then(response => response.text())
+            .then(responseText => {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(responseText, "text/xml");
+                const sessionId = xmlDoc.getElementsByTagName("sessionId")[0].textContent;
+                const serverUrl = xmlDoc.getElementsByTagName("serverUrl")[0].textContent;
+
+                if (sessionId) {
+                    // Step 2: Use the session ID to make the API call to Salesforce
                     const data = {
                         FirstName: firstName,
                         LastName: lastName,
@@ -115,11 +123,11 @@
                         Phone: phone
                     };
 
-                    fetch('https://selectivasystems.my.salesforce.com/services/data/v57.0/sobjects/Contact/', {
+                    fetch(serverUrl.replace('/u/', '/sobjects/Contact/'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + authData.access_token
+                            'Authorization': 'Bearer ' + sessionId
                         },
                         body: JSON.stringify(data)
                     })
