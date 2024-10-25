@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Sweeper Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 50px);
+            grid-template-rows: repeat(5, 50px);
+            gap: 5px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #4CAF50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+        }
+        .cell.revealed {
+            background-color: #8BC34A;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-board"></div>
+    <script>
+        const boardSize = 5;
+        const giftPosition = {
+            row: Math.floor(Math.random() * boardSize),
+            col: Math.floor(Math.random() * boardSize)
+        };
+
+        function createBoard() {
+            const gameBoard = document.getElementById("game-board");
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener("click", handleCellClick);
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+
+            if (cell.classList.contains("revealed")) {
+                return;
+            }
+
+            cell.classList.add("revealed");
+
+            if (row === giftPosition.row && col === giftPosition.col) {
+                cell.textContent = "🎁"; // Gift emoji
+                setTimeout(() => {
+                    alert("Congratulations! You found the gift!");
+                    resetGame();
+                }, 100);
+            } else {
+                cell.textContent = "❌"; // Cross emoji
+            }
+        }
+
+        function resetGame() {
+            const gameBoard = document.getElementById("game-board");
+            gameBoard.innerHTML = "";
+            giftPosition.row = Math.floor(Math.random() * boardSize);
+            giftPosition.col = Math.floor(Math.random() * boardSize);
+            createBoard();
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
