@@ -41,6 +41,7 @@
     <div id="game-board"></div>
     <script>
         const boardSize = 5;
+        let remainingChances = 3;
         const giftPosition = {
             row: Math.floor(Math.random() * boardSize),
             col: Math.floor(Math.random() * boardSize)
@@ -79,12 +80,20 @@
                 }, 100);
             } else {
                 cell.textContent = "❌"; // Cross emoji
+                remainingChances--;
+                if (remainingChances === 0) {
+                    setTimeout(() => {
+                        alert("Game Over! You've used all your chances.");
+                        resetGame();
+                    }, 100);
+                }
             }
         }
 
         function resetGame() {
             const gameBoard = document.getElementById("game-board");
             gameBoard.innerHTML = "";
+            remainingChances = 3;
             giftPosition.row = Math.floor(Math.random() * boardSize);
             giftPosition.col = Math.floor(Math.random() * boardSize);
             createBoard();
