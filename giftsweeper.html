@@ -42,7 +42,8 @@
     <script>
         const boardSize = 5;
         let remainingChances = 3;
-        const giftPosition = {
+        let giftAmount = Math.floor(Math.random() * 100000) + 1;
+        let giftPosition = {
             row: Math.floor(Math.random() * boardSize),
             col: Math.floor(Math.random() * boardSize)
         };
@@ -73,13 +74,13 @@
             cell.classList.add("revealed");
 
             if (row === giftPosition.row && col === giftPosition.col) {
-                cell.textContent = "🎁"; // Gift emoji
+                cell.textContent = "🚘"; // Gift emoji
                 setTimeout(() => {
-                    alert("Congratulations! You found the gift!");
+                    alert(`Congratulations! You found the gift of ₹${giftAmount}!`);
                     resetGame();
                 }, 100);
             } else {
-                cell.textContent = "❌"; // Cross emoji
+                cell.textContent = "🛺"; // Cross emoji
                 remainingChances--;
                 if (remainingChances === 0) {
                     setTimeout(() => {
@@ -94,8 +95,11 @@
             const gameBoard = document.getElementById("game-board");
             gameBoard.innerHTML = "";
             remainingChances = 3;
-            giftPosition.row = Math.floor(Math.random() * boardSize);
-            giftPosition.col = Math.floor(Math.random() * boardSize);
+            giftAmount = Math.floor(Math.random() * 100000) + 1;
+            giftPosition = {
+                row: Math.floor(Math.random() * boardSize),
+                col: Math.floor(Math.random() * boardSize)
+            };
             createBoard();
         }
 
